@@ -1,27 +1,17 @@
 package vanity
 
 import (
-	"errors"
 	"log"
-	"os"
 
 	"cloud.google.com/go/datastore"
 
 	"gopkg.in/mgo.v2"
 
-	"github.com/gorilla/sessions"
-
 	"golang.org/x/net/context"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
 )
 
 var (
-	DB          WardrobeDatabase
-	OAuthConfig *oauth2.Config
-
-	StorageBucket     *storage.BucketHandle
-	StorageBucketName string
+	DB WardrobeDatabase
 
 	// Force import of mgo library.
 	_ mgo.Session

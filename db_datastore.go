@@ -19,7 +19,7 @@ type datastoreDB struct {
 }
 
 // Ensure datastoreDB conforms to WardrobeDatabase
-var _ WardRobeDatabase = &datastoreDB{}
+var _ WardrobeDatabase = &datastoreDB{}
 
 func newDatastoreDB(client *datastore.Client) (WardrobeDatabase, error) {
 	ctx := context.Background()
@@ -36,8 +36,9 @@ func newDatastoreDB(client *datastore.Client) (WardrobeDatabase, error) {
 	}, nil
 }
 
-// No op
-func (db *datastoreDB) Close() {}
+func (db *datastoreDB) Close() {
+	// No op
+}
 
 func (db *datastoreDB) datastoreKey(id int64, kind string) *datastore.Key {
 	return datastore.IDKey(kind, id, nil)
@@ -53,7 +54,7 @@ func (db *datastoreDB) AddPiece(p *Piece) (id int64, err error) {
 	return k.ID, nil
 }
 
-func (db *datastoreDB) GetPiece(id int64) (*Piece, err) {
+func (db *datastoreDB) GetPiece(id int64) (*Piece, error) {
 	ctx := context.Background()
 	k := db.datastoreKey(id, PieceKind)
 	piece := &Piece{}
@@ -63,14 +64,10 @@ func (db *datastoreDB) GetPiece(id int64) (*Piece, err) {
 	return piece, nil
 }
 
-func (db *datastoreDB) GetPieces() ([]*Piece, error) {
-
-}
-
 func (db *datastoreDB) UpdatePiece(p *Piece) error {
-	ctx := contest.Background()
-	k := db.datastoreKey(o.ID, PieceKind)
-	if _, err := db.client.Put(ctx, k, o); err != nil {
+	ctx := context.Background()
+	k := db.datastoreKey(p.ID, PieceKind)
+	if _, err := db.client.Put(ctx, k, p); err != nil {
 		return fmt.Errorf("datastoreDB: could not update Piece: %v", err)
 	}
 	return nil
@@ -88,29 +85,29 @@ func (db *datastoreDB) DeletePiece(id int64) error {
 func (db *datastoreDB) AddOutfit(o *Outfit) (id int64, err error) {
 	ctx := context.Background()
 	k := datastore.IncompleteKey(OutfitKind, nil)
-	k, err = db.client.Put(ctx, k, p)
+	k, err = db.client.Put(ctx, k, o)
 	if err != nil {
 		return 0, fmt.Errorf("datastoreDB: could not put Outfit: %v", err)
 	}
 	return k.ID, nil
 }
 
-func (db *datastoreDB) GetOutfit(id int64) (*Outfit, err) {
+func (db *datastoreDB) GetOutfit(id int64) (*Outfit, error) {
 	ctx := context.Background()
 	k := db.datastoreKey(id, OutfitKind)
 	outfit := &Outfit{}
-	if err := db.client.Get(ctx, k, piece); err != nil {
+	if err := db.client.Get(ctx, k, outfit); err != nil {
 		return nil, fmt.Errorf("datastoreDB: could not get Outfit: %v", err)
 	}
 	return outfit, nil
 }
 
-func (db *datastoreDB) GetOutfits() ([]*Outfit, error) {
+// func (db *datastoreDB) GetOutfits() ([]*Outfit, error) {
 
-}
+// }
 
 func (db *datastoreDB) UpdateOutfit(o *Outfit) error {
-	ctx := contest.Background()
+	ctx := context.Background()
 	k := db.datastoreKey(o.ID, OutfitKind)
 	if _, err := db.client.Put(ctx, k, o); err != nil {
 		return fmt.Errorf("datastoreDB: could not update Oufit: %v", err)

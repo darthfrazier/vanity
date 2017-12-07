@@ -64,6 +64,10 @@ func (db *datastoreDB) GetPiece(id int64) (*Piece, error) {
 	return piece, nil
 }
 
+// func (db *datastoreDB) GetPieces() ([]*Outfit, error) {
+
+// }
+
 func (db *datastoreDB) UpdatePiece(p *Piece) error {
 	ctx := context.Background()
 	k := db.datastoreKey(p.ID, PieceKind)

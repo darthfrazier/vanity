@@ -1,7 +1,6 @@
 package vanity
 
 import (
-	"fmt"
 	"testing"
 )
 

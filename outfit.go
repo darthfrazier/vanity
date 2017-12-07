@@ -9,31 +9,30 @@ import (
 )
 
 type Outfit struct {
-	ID          int64
-	name        string
-	description string
-	class       string
+	ID          int64  `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Class       string `json:"class"`
 
 	// Outfit components
-	// TODO:: properly define enconding for these fields
-	Jacket      *datastore.Key
-	Tops        string
-	Bottom      *datastore.Key
-	Shoes       *datastore.Key
-	Accessories string
+	Jacket      *datastore.Key `json:"jacket"`
+	Tops        string         `json:"tops"`
+	Bottom      *datastore.Key `json:"bottom"`
+	Shoes       *datastore.Key `json:"shoes"`
+	Accessories string         `json:"accessories"`
 
 	// Outfit qualities
-	Style       string
-	Inspiration string
-	TotalCost   int
-	Rating      int
-	Pictures    string
+	Style       string `json:"style"`
+	Inspiration string `json:"inspiration"`
+	TotalCost   int    `json:"total_cost"`
+	Rating      int    `json:"rating"`
+	Pictures    string `json:"pictures"`
 
 	// Outfit state tracking
-	LastWornDate      time.Time
-	ScheduledWearDate time.Time
-	LastModified      time.Time
-	State             string
+	LastWornDate      time.Time `json:"last_worn_date"`
+	ScheduledWearDate time.Time `json:"schedule_wear_date"`
+	LastModified      time.Time `json:"last_modified"`
+	State             string    `json:"state"`
 }
 
 // JSON encode array of keys and save to outfit Tops field as string

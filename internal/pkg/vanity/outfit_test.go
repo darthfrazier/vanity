@@ -3,6 +3,7 @@ package vanity_test
 import (
 	"testing"
 
+	"errors"
 	"fmt"
 	"github.com/darthfrazier/vanity/internal/pkg/vanity"
 )
@@ -23,6 +24,10 @@ func (db *TestWardrobeDatabase) GetPiece(id int64) (*vanity.Piece, error) {
 	return getPieceReturn, nil
 }
 
+func (db *TestWardrobeDatabase) GetPiecesByID(ids []int64) ([]*vanity.Piece, error) {
+	return nil, nil
+}
+
 func (db *TestWardrobeDatabase) UpdatePiece(p *vanity.Piece) error {
 	return nil
 }
@@ -39,11 +44,19 @@ func (db *TestWardrobeDatabase) GetOutfit(id int64) (*vanity.Outfit, error) {
 	return nil, nil
 }
 
+func (db *TestWardrobeDatabase) GetOutfitsByID(ids []int64) ([]*vanity.Outfit, error) {
+	return nil, errors.New("Something went wrong")
+}
+
 func (db *TestWardrobeDatabase) GetOutfits(state string, class string) ([]*vanity.Outfit, error) {
 	return nil, nil
 }
 
 func (db *TestWardrobeDatabase) UpdateOutfit(o *vanity.Outfit) error {
+	return nil
+}
+
+func (db *TestWardrobeDatabase) UpdateOutfits(outfits []*vanity.Outfit) error {
 	return nil
 }
 
@@ -61,7 +74,7 @@ func assertEqual(t *testing.T, a interface{}, b interface{}, message string) {
 	t.Fatal(message)
 }
 
-func assertNotNil(t *testing.T, err error) {
+func assertNil(t *testing.T, err error) {
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -71,38 +84,29 @@ func assertError(t *testing.T, err error, message string) {
 	assertEqual(t, err.Error(), message, "")
 }
 
-// func TestInitiializeOutfitNoPiecesSuccess(t *testing.T) {
-// 	outfit := &vanity.Outfit{
-// 		State: "WEARING",
-// 		Name:  "test outfit",
-// 		Class: "POWERBLACK",
-// 	}
-// 	err := outfit.InitializeOutfit()
-// 	assertNotNil(t, err)
-// }
+func TestInitializeOutfitNoPiecesSuccess(t *testing.T) {
+	var db *TestWardrobeDatabase
+	outfit := &vanity.Outfit{
+		State: "WEARING",
+		Name:  "test outfit",
+		Class: "POWERBLACK",
+	}
+	err := outfit.InitializeOutfit(db)
+	assertNil(t, err)
+}
 
-// func TestInitiializeOutfitNoPiecesInvalidClassFailure(t *testing.T) {
-// 	outfit := &vanity.Outfit{
-// 		State: "WEARING",
-// 		Name:  "test outfit",
-// 		Class: "INVALID",
-// 	}
-// 	err := outfit.InitializeOutfit()
-// 	assertEqual(t, err.Error(), "Invalid class: INVALID for outfit", "")
-// }
+func TestInitializeOutfitNoPiecesInvalidClassFailure(t *testing.T) {
+	var db *TestWardrobeDatabase
+	outfit := &vanity.Outfit{
+		State: "WEARING",
+		Name:  "test outfit",
+		Class: "INVALID",
+	}
+	err := outfit.InitializeOutfit(db)
+	assertEqual(t, err.Error(), "Invalid class: INVALID for outfit", "")
+}
 
-// func TestInitiializeOutfitInvalidPieceFailure(t *testing.T) {
-// 	outfit := &vanity.Outfit{
-// 		State:  "WEARING",
-// 		Name:   "test outfit",
-// 		Class:  "INVALID",
-// 		Bottom: 123,
-// 	}
-// 	err := outfit.InitializeOutfit()
-// 	assertError(t, err, "datastoreDB: could not get Piece: datastore: no such entity")
-// }
-
-func TestInitiializeOutfitInvalidTopFailure(t *testing.T) {
+func TestInitializeOutfitInvalidTopFailure(t *testing.T) {
 	var db *TestWardrobeDatabase
 	getPieceReturn = &vanity.Piece{
 		ID: 123,
@@ -114,21 +118,5 @@ func TestInitiializeOutfitInvalidTopFailure(t *testing.T) {
 		Tops:  []int64{123, 234},
 	}
 	err := outfit.InitializeOutfit(db)
-	assertError(t, err, "datastoreDB: could not get Piece: datastore: no such entity")
-}
-
-func TestInitiializeOutfitInvalidTopFailure2(t *testing.T) {
-	var db *TestWardrobeDatabase
-	getPieceReturn = &vanity.Piece{
-		ID:   223,
-		Type: "TOP",
-	}
-	outfit := &vanity.Outfit{
-		State: "WEARING",
-		Name:  "test outfit",
-		Class: "INVALID",
-		Tops:  []int64{123, 234},
-	}
-	err := outfit.InitializeOutfit(db)
-	assertError(t, err, "datastoreDB: could not get Piece: datastore: no such entity")
+	assertError(t, err, "Piece id: 123 is not a Top")
 }

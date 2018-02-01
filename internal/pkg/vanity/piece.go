@@ -14,13 +14,22 @@ const (
 	LIMBO           = "LIMBO"
 
 	// Piece types
+	JACKET      = "JACKET"
+	TOP         = "TOP"
+	BOTTOM      = "BOTTOM"
+	SHOES       = "SHOES"
+	ACCESSORIES = "ACCESSORIES"
 
 	// Piece subtypes
+	// Jacket subtupes
+	RAIN_JACKET  = "RAIN_JACKET"
+	HEAVY_JACKET = "HEAVY_JACKET"
+	LIGHT_JACKET = "LIGHT_JACKET"
 )
 
 // TODO:: Shiity solution for validating state changes
 var pieceStates = []string{CLOSET, LAUNDRY, LAUNDRY_PENDING, WEARING, LIMBO}
-var pieceTypes = []string{}
+var pieceTypes = []string{JACKET, TOP, BOTTOM, SHOES, ACCESSORIES}
 var pieceSubTypes = []string{}
 
 type Piece struct {
@@ -50,28 +59,35 @@ type Piece struct {
 
 func (p *Piece) InitializeOufit() error {
 	// TODO
+	return nil
 }
 
 // TODO:: pull these constants out to a config file
 func (p *Piece) CheckIn(checkinSource string, db WardrobeDatabase) error {
+	var newState string
 	if checkinSource == "HAMPER-2" {
-		p.SetState(LAUNDRY_PENDING, db)
+		newState = LAUNDRY_PENDING
 	} else if checkinSource == "MASTER-1" {
 		switch p.State {
 		case CLOSET:
-			p.SetState(WEARING, db)
+			newState = WEARING
 			// TODO:: create or update active state
 		case LAUNDRY, LAUNDRY_PENDING, LIMBO:
-			p.SetState(CLOSET, db)
-			// TODO:: Trigger inventory service for sorting
+			newState = CLOSET
 		case WEARING:
-			p.SetState(CLOSET, db)
-			// TODO:: Trigger inventory service for sorting
+			newState = CLOSET
 			// TODO:: create or update active state
 		}
 	}
+	fmt.Println(newState)
 
-	err := db.UpdatePiece(p)
+	err := p.SetState(newState, db)
+	if err != nil {
+		return fmt.Errorf("Could not change piece state: %v", err)
+	}
+
+	fmt.Println(p)
+	err = db.UpdatePiece(p)
 	if err != nil {
 		return fmt.Errorf("could not save piece: %v", p)
 	}
@@ -85,15 +101,31 @@ func (p *Piece) SetState(state string, db WardrobeDatabase) error {
 	p.State = state
 
 	// Propogate state change to outfits
-	outfits := db.GetOutfitsByID(p.Outfits)
-	for _, outfit := range outfits {
-		switch state {
-		case LAUNDRY_PENDING, WEARING:
-			outfit.State = NOT_WEARABLE
-			outfit.MissingPieces = append(outfit.MissingPieces, p.ID)
-		case CLOSET:
-			outfit.State = WEARABLE
-			// TODO:: remove id from missing pieces
+	if p.Outfits != nil {
+		outfits, err := db.GetOutfitsByID(p.Outfits)
+		fmt.Print(err)
+		if err != nil {
+			return fmt.Errorf("Could not retrieve outfits: %v", err)
+		}
+
+		for _, outfit := range outfits {
+			switch state {
+			case LAUNDRY_PENDING, WEARING:
+				outfit.State = NOT_WEARABLE
+				outfit.MissingPieces = append(outfit.MissingPieces, p.ID)
+			case CLOSET:
+				outfit.State = WEARABLE
+				missingPieces := outfit.MissingPieces
+				for i, id := range missingPieces {
+					if id == p.ID {
+						missingPieces = append(missingPieces[:i], missingPieces[i+1:]...)
+						break
+					}
+				}
+			}
+		}
+		if err := db.UpdateOutfits(outfits); err != nil {
+			return fmt.Errorf("Could not updated outfits: %v", err)
 		}
 	}
 

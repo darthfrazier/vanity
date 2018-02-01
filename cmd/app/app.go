@@ -13,7 +13,7 @@ import (
 
 	"google.golang.org/appengine"
 
-	"github.com/darthfrazier/vanity"
+	"github.com/darthfrazier/vanity/internal/pkg/vanity"
 )
 
 func main() {
@@ -56,7 +56,7 @@ func registerHandlers() {
 }
 
 func checkInHandler(w http.ResponseWriter, r *http.Request) *appError {
-	checkinSource = mux.Vars(r)["checkinSource"]
+	checkinSource := mux.Vars(r)["checkinSource"]
 	id, err := strconv.ParseInt(mux.Vars(r)["id"], 10, 64)
 	if err != nil {
 		return appErrorf(err, "bad piece id: %v", err)
@@ -65,9 +65,12 @@ func checkInHandler(w http.ResponseWriter, r *http.Request) *appError {
 	if err != nil {
 		return appErrorf(err, "could not find piece: %v", err)
 	}
+	fmt.Println(checkinSource)
+	fmt.Println(id)
+	piece.ID = id
 
 	// Perform state change if necessary
-	err := piece.CheckIn(checkinSource, vanity.DB)
+	err = piece.CheckIn(checkinSource, vanity.DB)
 	if err != nil {
 		return appErrorf(err, "Error updating piece state: %v", err)
 	}
@@ -162,7 +165,7 @@ func createOutfitHandler(w http.ResponseWriter, r *http.Request) *appError {
 		return appErrorf(err, "%v", err)
 	}
 
-	outfit.InitializeOufit()
+	outfit.InitializeOutfit(vanity.DB)
 	id, err := vanity.DB.AddOutfit(outfit)
 	if err != nil {
 		return appErrorf(err, "could not save outfit: %v", err)
@@ -214,7 +217,7 @@ func updateOutfitHandler(w http.ResponseWriter, r *http.Request) *appError {
 		return appErrorf(err, "could not parse outfit from json: %v", err)
 	}
 
-	outfit.InitializeOutfit()
+	outfit.InitializeOutfit(vanity.DB)
 	err = vanity.DB.UpdateOutfit(outfit)
 	if err != nil {
 		return appErrorf(err, "could not save outfit: %v", err)

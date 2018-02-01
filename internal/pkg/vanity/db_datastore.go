@@ -47,6 +47,7 @@ func (db *datastoreDB) datastoreKey(id int64, kind string) *datastore.Key {
 func (db *datastoreDB) AddPiece(p *Piece) (id int64, err error) {
 	ctx := context.Background()
 	k := datastore.IncompleteKey(PieceKind, nil)
+
 	k, err = db.client.Put(ctx, k, p)
 	if err != nil {
 		return 0, fmt.Errorf("datastoreDB: could not put Piece: %v", err)
@@ -72,7 +73,7 @@ func (db *datastoreDB) GetPiecesByID(ids []int64) ([]*Piece, error) {
 		keys = append(keys, db.datastoreKey(id, PieceKind))
 	}
 
-	if err := db.client.GetMulti(ctx, k, pieces); err != nil {
+	if err := db.client.GetMulti(ctx, keys, pieces); err != nil {
 		return nil, fmt.Errorf("datastoreDB: could not get Piece: %v", err)
 	}
 
@@ -130,7 +131,7 @@ func (db *datastoreDB) GetOutfitsByID(ids []int64) ([]*Outfit, error) {
 		keys = append(keys, db.datastoreKey(id, OutfitKind))
 	}
 
-	if err := db.client.GetMulti(ctx, k, outfits); err != nil {
+	if err := db.client.GetMulti(ctx, keys, outfits); err != nil {
 		return nil, fmt.Errorf("datastoreDB: could not get Outfit: %v", err)
 	}
 
@@ -167,6 +168,21 @@ func (db *datastoreDB) UpdateOutfit(o *Outfit) error {
 	if _, err := db.client.Put(ctx, k, o); err != nil {
 		return fmt.Errorf("datastoreDB: could not update Oufit: %v", err)
 	}
+	return nil
+}
+
+func (db *datastoreDB) UpdateOutfits(outfits []*Outfit) error {
+	ctx := context.Background()
+	keys := make([]*datastore.Key, len(outfits))
+
+	for _, o := range outfits {
+		keys = append(keys, db.datastoreKey(o.ID, OutfitKind))
+	}
+
+	if _, err := db.client.PutMulti(ctx, keys, outfits); err != nil {
+		return fmt.Errorf("datastoreDB: could not update Oufits: %v", err)
+	}
+
 	return nil
 }
 
